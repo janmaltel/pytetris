@@ -1,5 +1,6 @@
 import tetris
-from agents.linear_agent import LinearAgent
+import agents
+# from agents.linear_agent import LinearAgent
 import numpy as np
 import time
 from datetime import datetime
@@ -16,15 +17,15 @@ start = time.time()
 env = tetris.Tetris(num_columns=10, num_rows=10)
 
 print("RANDOM policy")
-agent = LinearAgent(policy_weights=np.random.normal(0, 1, 8))
-random_rewards = evaluate(env, agent, num_runs, max_cleared_lines, verbose)
+agent = agents.LinearAgent(policy_weights=np.random.normal(0, 1, 8))
+random_rewards = evaluate(env, agent, num_runs, max_cleared_lines=np.inf, verbose=True)
 
 print("Directed equal weights policy")
-agent = LinearAgent(policy_weights=np.array([-1, -1, -1, -1, -1, -1, 1, -1], dtype=np.float64))
+agent = agents.LinearAgent(policy_weights=np.array([-1, -1, -1, -1, -1, -1, 1, -1], dtype=np.float64))
 ew_rewards = evaluate(env, agent, num_runs, max_cleared_lines, verbose)
 
 print("Canonical non-compensatory weighting (i.e., 1/2, 1/4, 1/8, 1/16, 1/32, ...)")
-agent = LinearAgent(policy_weights=0.5**np.arange(8) * np.array([-1, -1, -1, -1, -1, -1, 1, -1]))
+agent = agents.LinearAgent(policy_weights=0.5**np.arange(8) * np.array([-1, -1, -1, -1, -1, -1, 1, -1]))
 ttb_rewards = evaluate(env, agent, num_runs, max_cleared_lines, verbose)
 
 end = time.time()

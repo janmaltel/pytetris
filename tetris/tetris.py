@@ -2,6 +2,7 @@ from tetris.board import generate_empty_board
 from tetris import board, tetromino
 import numba
 from numba import jitclass, bool_, int64
+from tetris.utils import print_tetromino, print_board_to_string
 
 
 # Needed for numba.@jitclass
@@ -63,4 +64,10 @@ class Tetris:
 
     def get_after_states(self):
         return self.current_tetromino.get_after_states(self.current_board)
+
+    def print_current_board(self):
+        print(print_board_to_string(self.current_board))
+
+    def print_current_tetromino(self):
+        print(print_tetromino(self.current_tetromino.current_tetromino_index))
 
