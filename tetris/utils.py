@@ -1,3 +1,7 @@
+from numba import njit
+
+
+@njit
 def print_board_to_string(state):
     string = "\n"
     for row_ix in range(state.representation.shape[0]):
@@ -13,6 +17,7 @@ def print_board_to_string(state):
     return string
 
 
+@njit
 def print_tetromino(tetromino_index):
     if tetromino_index == 0:
         string = '''

@@ -4,7 +4,7 @@ from numba import jitclass, int64
 from tetris import board
 
 specTetromino = [
-    ('current_tetromino', int64),
+    ('current_tetromino_index', int64),
     ('tetromino_names', int64[:]),
     ('feature_type', numba.types.string),
     ('num_features', int64),
@@ -26,16 +26,16 @@ class Tetromino:
                                          4,   # "t"
                                          5,   # "rcorner"
                                          6])  # "lcorner"
-        self.current_tetromino = 0
+        self.current_tetromino_index = 0
         self.next_tetromino()
 
     def next_tetromino(self):
-        self.current_tetromino = np.random.choice(self.tetromino_names)
+        self.current_tetromino_index = np.random.choice(self.tetromino_names)
 
     def copy_with_same_current_tetromino(self):
-        current_tetromino = self.current_tetromino
+        old_tetromino_index = self.current_tetromino_index
         new_tetromino_object = Tetromino(self.feature_type, self.num_features, self.num_columns)
-        new_tetromino_object.current_tetromino = current_tetromino
+        new_tetromino_object.current_tetromino_index = old_tetromino_index
         return new_tetromino_object
 
     def get_after_states(self, current_state):
@@ -49,7 +49,7 @@ class Tetromino:
 
         after_states = []
 
-        if self.current_tetromino == 0:
+        if self.current_tetromino_index == 0:
             # STRAIGHT
             # Vertical placements
             for col_ix, free_pos in enumerate(current_state.lowest_free_rows):
@@ -85,7 +85,7 @@ class Tetromino:
                                             False,
                                             True  # =
                                             )
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
 
@@ -122,9 +122,9 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
-        elif self.current_tetromino == 1:
+        elif self.current_tetromino_index == 1:
             # SQUARE
             # Horizontal placements
             max_col_index = self.num_columns - 1
@@ -159,9 +159,9 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
-        elif self.current_tetromino == 2:
+        elif self.current_tetromino_index == 2:
             # SNAKER
             # Vertical placements
             max_col_index = self.num_columns - 1
@@ -202,7 +202,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 # Horizontal placements
@@ -245,10 +245,10 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
 
-        elif self.current_tetromino == 3:
+        elif self.current_tetromino_index == 3:
             # SNAKEL
             # Vertical placements
             max_col_index = self.num_columns - 1
@@ -287,7 +287,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 ## Horizontal placements
@@ -328,9 +328,9 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
-        elif self.current_tetromino == 4:
+        elif self.current_tetromino_index == 4:
             # T
 
             # Vertical placements.
@@ -371,7 +371,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 # Single cell on right
@@ -409,7 +409,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 if col_ix < self.num_columns - 2:
@@ -451,7 +451,7 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
 
                     # T
@@ -490,9 +490,9 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
-        elif self.current_tetromino == 5:
+        elif self.current_tetromino_index == 5:
             # RCorner
 
             # Vertical placements.
@@ -531,7 +531,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 # Bottom-left corner
@@ -569,7 +569,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 if col_ix < self.num_columns - 2:
@@ -609,7 +609,7 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
 
                     # Top-left corner
@@ -647,10 +647,10 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
 
-        elif self.current_tetromino == 6:
+        elif self.current_tetromino_index == 6:
             # LCorner
             # Vertical placements. 'height' becomes 'width' :)
             max_col_index = self.num_columns - 1
@@ -688,7 +688,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 # Bottom-right corner
@@ -726,7 +726,7 @@ class Tetromino:
                                             self.feature_type,
                                             False,
                                             True)
-                    if not new_state.terminal_state:
+                    if not new_state.is_terminal_state:
                         after_states.append(new_state)
 
                 if col_ix < self.num_columns - 2:
@@ -766,7 +766,7 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
 
                     # Top-right corner
@@ -804,7 +804,7 @@ class Tetromino:
                                                 self.feature_type,
                                                 False,
                                                 True)
-                        if not new_state.terminal_state:
+                        if not new_state.is_terminal_state:
                             after_states.append(new_state)
         else:
             raise ValueError("wrong current tetromino!")
@@ -815,7 +815,7 @@ class Tetromino:
     #     # after_states = List()
     #     after_states = []
     #
-    #     if self.current_tetromino == 0:
+    #     if self.current_tetromino_index == 0:
     #         # STRAIGHT
     #         # Vertical placements
     #         for col_ix, free_pos in enumerate(current_board.lowest_free_rows):
@@ -861,7 +861,7 @@ class Tetromino:
     #                                             # current_board.hole_depths_per_col,
     #                                             # current_board.cumulative_wells_per_col)
     #                     after_states.append(new_state)
-    #     elif self.current_tetromino == 1:
+    #     elif self.current_tetromino_index == 1:
     #         # SQUARE
     #         # Horizontal placements
     #         max_col_index = self.num_columns - 1
@@ -889,7 +889,7 @@ class Tetromino:
     #                 # current_board.cumulative_wells_per_col
     #                 # )
     #                 after_states.append(new_state)
-    #     elif self.current_tetromino == 2:
+    #     elif self.current_tetromino_index == 2:
     #         # SNAKER
     #         # Vertical placements
     #         max_col_index = self.num_columns - 1
@@ -950,7 +950,7 @@ class Tetromino:
     #                     # current_board.hole_depths_per_col,
     #                     # current_board.cumulative_wells_per_col)
     #                     after_states.append(new_state)
-    #     elif self.current_tetromino == 3:
+    #     elif self.current_tetromino_index == 3:
     #         # SNAKEL
     #         # Vertical placements
     #         max_col_index = self.num_columns - 1
@@ -1011,7 +1011,7 @@ class Tetromino:
     #                     # current_board.hole_depths_per_col,
     #                     # current_board.cumulative_wells_per_col)
     #                     after_states.append(new_state)
-    #     elif self.current_tetromino == 4:
+    #     elif self.current_tetromino_index == 4:
     #         # T
     #
     #         # Vertical placements.
@@ -1132,7 +1132,7 @@ class Tetromino:
     #                     # current_board.hole_depths_per_col,
     #                     # current_board.cumulative_wells_per_col)
     #                     after_states.append(new_state)
-    #     elif self.current_tetromino == 5:
+    #     elif self.current_tetromino_index == 5:
     #         # RCorner
     #
     #         # Vertical placements.
@@ -1235,7 +1235,7 @@ class Tetromino:
     #                                             False)
     #                     after_states.append(new_state)
     #
-    #     elif self.current_tetromino == 6:
+    #     elif self.current_tetromino_index == 6:
     #         # LCorner
     #         # Vertical placements. 'height' becomes 'width' :)
     #         max_col_index = self.num_columns - 1

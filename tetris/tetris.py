@@ -1,4 +1,3 @@
-import numpy as np
 from tetris.board import generate_empty_board
 from tetris import board, tetromino
 import numba
@@ -11,7 +10,6 @@ specTetris = [
     ('num_rows', int64),
     ('feature_type', numba.types.string),
     ('num_features', int64),
-    ('max_cleared_test_lines', int64),
     ('game_over', bool_),
     ('current_board', board.Board.class_type.instance_type),
     ('current_tetromino', tetromino.Tetromino.class_type.instance_type),
@@ -55,13 +53,13 @@ class Tetris:
         self.game_over = False
         self.current_tetromino.next_tetromino()
 
-    def make_step(self, after_state):
-        self.game_over = after_state.terminal_state
+    def step(self, after_state):
+        self.game_over = after_state.is_terminal_state
         if not self.game_over:
             self.cleared_lines += after_state.n_cleared_lines
             self.current_board = after_state
             self.current_tetromino.next_tetromino()
-        return [[self.current_board, self.current_tetromino], after_state.n_cleared_lines, self.game_over]
+        return (self.current_board, self.current_tetromino), after_state.n_cleared_lines, self.game_over
 
     def get_after_states(self):
         return self.current_tetromino.get_after_states(self.current_board)

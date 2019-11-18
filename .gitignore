@@ -1,3 +1,12 @@
+.DS_Store
+.idea/
+archive/
+run_experiments/
+*experiments/
+*t2019_*
+output/
+cmaesout*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -58,6 +67,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
 # Flask stuff:
 instance/

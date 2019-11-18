@@ -3,6 +3,7 @@ import numba
 from numba import njit, jitclass, float64, bool_, int64
 
 
+# Need to specify types for numba's @jitclass
 spec = [
     ('representation', bool_[:, :]),
     ('lowest_free_rows', int64[:]),
@@ -18,7 +19,7 @@ spec = [
     ('cleared_rows_relative_to_anchor', bool_[:]),
     ('features_are_calculated', bool_),
     ('features', float64[:]),
-    ('terminal_state', bool_)
+    ('is_terminal_state', bool_)
 ]
 
 
@@ -32,12 +33,12 @@ class Board:
                  landing_height_bonus,  # =0.0,
                  num_features,  #=8,
                  feature_type,  #="bcts",
-                 terminal_state,  # this is useful to generate a "terminal state"
+                 is_terminal_state,  # this is useful to generate a "terminal state"
                  has_overlapping_fields=False
                  ):
-        self.terminal_state = terminal_state
+        self.is_terminal_state = is_terminal_state
 
-        if not terminal_state:
+        if not self.is_terminal_state:
             self.representation = representation
             self.lowest_free_rows = lowest_free_rows
             self.num_rows, self.num_columns = representation.shape
@@ -53,10 +54,11 @@ class Board:
             self.features_are_calculated = False
             self.features = np.zeros(self.num_features, dtype=np.float64)
             if has_overlapping_fields:
-                self.terminal_state = check_terminal(self.representation, self.num_rows)
+                self.is_terminal_state = check_terminal(self.representation, self.num_rows)
                 self.representation = self.representation[:self.num_rows, ]
 
-    def get_features_pure(self, addRBFandIntercept=False):  #, order_by=None, standardize_by=None, addRBF=False
+    def get_features(self, addRBFandIntercept=False):
+        # RBF = radial basis function features (see Scherrer et al. 2015)
         if not self.features_are_calculated:
             if self.feature_type == "bcts":
                 self.calc_bcts_features()
@@ -81,8 +83,6 @@ class Board:
                 raise ValueError("Feature type must be either bcts or standardized_bcts or simple or super_simple")
         out = self.features * direct_by  # .copy()
         out = out[order_by]
-        # if standardize_by is not None:
-        #     features = features / standardize_by
         if addRBF:
             out = np.concatenate((
                 out,
@@ -106,6 +106,7 @@ class Board:
         return out
 
     def clear_lines(self, changed_lines):
+        # This function is more convoluted than it should be because of missing numba/numpy functionality as of writing this function.
         num_columns = self.num_columns
         row_sums = np.sum(self.representation[changed_lines, :], axis=1)
         is_full = (row_sums == num_columns)
@@ -138,7 +139,7 @@ class Board:
         return is_full
 
     def calc_bcts_features(self):
-        rows_with_holes_set = {1000}
+        rows_with_holes_set = {100000}  # numba does not like initialization of an empty set. The 100000 is removed at the end
         representation = self.representation
         num_rows, num_columns = representation.shape
         lowest_free_rows = self.lowest_free_rows
@@ -350,7 +351,7 @@ class Board:
                         if cell_left:
                             row_transitions += 1
 
-        rows_with_holes_set.remove(1000)
+        rows_with_holes_set.remove(100000)
         rows_with_holes = len(rows_with_holes_set)
         eroded_pieces = numba_sum_int(self.cleared_rows_relative_to_anchor * self.pieces_per_changed_row)
         # n_cleared_lines = numba_sum_int(self.cleared_rows_relative_to_anchor)
@@ -360,6 +361,7 @@ class Board:
                                   cumulative_wells, row_transitions, eroded_piece_cells, hole_depths])
 
 
+@njit(cache=False)
 def generate_empty_board(num_rows, num_columns):
     return Board(np.zeros((num_rows, num_columns), dtype=np.bool_),  # representation=
                  np.zeros(num_columns, dtype=np.int64),  # lowest_free_rows=
@@ -368,12 +370,26 @@ def generate_empty_board(num_rows, num_columns):
                  0.0,  # landing_height_bonus=
                  8,  # num_features=
                  "bcts",  # feature_type=
-                 False,  # terminal_state=
+                 False,  # is_terminal_state=
+                 False  # has_overlapping_fields=
+                 )
+
+
+@njit(cache=False)
+def generate_terminal_board():
+    return Board(np.ones((2, 2), dtype=np.bool_),  # representation=
+                 np.zeros(2, dtype=np.int64),  # lowest_free_rows=
+                 np.array([0], dtype=np.int64),  # changed_lines=
+                 np.array([0], dtype=np.int64),  # pieces_per_changed_row=
+                 0.0,  # landing_height_bonus=
+                 8,  # num_features=
+                 "bcts",  # feature_type=
+                 True,  # is_terminal_state=
                  False  # has_overlapping_fields=
                  )
 
 specTerm = [
-    ('terminal_state', bool_),
+    ('is_terminal_state', bool_),
 ]
 
 
